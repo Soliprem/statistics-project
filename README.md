@@ -1,5 +1,5 @@
 # Gun Deaths and Regulation
-Work for the Statistics and Programming group project.
+Work for the Programming lab 1 group project.
 
 This work aims to verify the presence (or lack-there-of) of correlation between gun restrictions and gun deaths in the USA. 
 
