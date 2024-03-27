@@ -80,7 +80,8 @@ gundeaths_cond %>%
   labs(x = "Deaths",
        y = NULL,
        title = "Histogram of Deaths") + 
-  theme_bw()
+  theme_bw()+
+  theme(axis.ticks.y = element_blank())
 
 gundeaths_cond %>%
   ggplot(aes( year, Rate, color = state))+
@@ -137,7 +138,7 @@ law_provision_norm %>%
        title = "Gun Regulation Index in states")
 
 law_provision_norm %>%
-  ggplot(aes(year, unlist(index), color = state))+
+  ggplot(aes(year, unlist(index), color = year))+
   geom_point()+
   facet_wrap(~state)+
   theme_bw() +
