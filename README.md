@@ -20,7 +20,7 @@ Descriptive Plots serve the fgunction to help us understand and explain the cont
 
 ![Deaaths histogram](./plots/descriptive_plots/deaths_histogram.png)
 
-![Deaths and Population (by year)](./plots/descriptive_plots/death_rate_over_time_by_state.png)
+![Deaths and Population (by year)](./plots/descriptive_plots/deaths_and_population.png)
 
 ![Gun Deaths and Population over time](./plots/descriptive_plots/gun_deaths_and_population_over_time_(by_year).png)
 
