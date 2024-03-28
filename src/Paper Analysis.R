@@ -1,7 +1,7 @@
 # libraries used
 library(caret)
 library(dplyr)
-
+library(ggpubr)
 # gun death dataset
 gun_deaths_us_1999_2019 <- read.csv("gun_deaths_us_1999_2019.csv")
 gun_deaths_us_1999_2019 <- as.data.frame(gun_deaths_us_1999_2019)
@@ -95,31 +95,6 @@ gundeaths_cond %>%
        y = "Death Rate (per 100,000)",
        title = "Death rate over time")
 
-v_meandr <- as.vector(0)
-for(i in 1:19){
- v_meandr[i] <- mean(gundeaths_cond$Rate[gundeaths_cond$year == as.character(i + 1998)])
-}
-
-v_dsum <- as.vector(0)
-for(i in 1:19){
-  v_dsum[i] <- sum(gundeaths_cond$Deaths[gundeaths_cond$year == as.character(i + 1998)])/3100
-}
-
-
-df_dry <- data.frame(x = 1999:2017, y = v_meandr, z = v_dsum ) 
-df_dry %>%
-ggplot(aes(x,y)) +
-  geom_point(size = v_dsum,aes(color = "brown"))+
-  geom_smooth(method = lm, aes(color = "brown"))+
-  geom_line(color = "red")+
-  theme_bw()+
-  theme(legend.position = "none") +
-  labs(x = "Years",
-       y = "Mean Death Rate",
-       title = "Death Rate over time") 
- 
-    
-    
 #law provision dataset
 mean_lt <- mean(law_provision_norm$lawtotal)
 sd_lt <- sd(law_provision_norm$lawtotal)
@@ -146,11 +121,139 @@ law_provision_norm %>%
   labs(x = "Year",
        y = "Gun Restriction Index",
        title = "Gun restriction over time")
-  
-# ifelse(unlist(law_provision_norm$index) <0.25, labels = "Very Low", 
-#        ifelse(unlist(law_provision_norm$index) <0.50, labels = "Low",
-#               ifelse(unlist(law_provision_norm$index) <0.75, labels = "Medium",
-#                      labels = "High"))
-# )
+
+merged$Score <- ifelse(unlist(merged$index) <0.25, "Very Low",
+                       ifelse(unlist(merged$index) <0.5, "Low",
+                              ifelse(unlist(merged$index) <0.75, "Medium",
+                                     "High")))
+
+merged %>%
+  ggplot(aes(Score)) +
+  geom_bar(fill = "purple")+
+  coord_flip()+
+  theme_bw()+
+  labs(x = "Index score",
+       y = "State count (all time)",
+       title = "Index score count" )
+
 
 #analysis
+
+v_meandr <- as.vector(0)
+for(i in 1:19){
+  v_meandr[i] <- mean(gundeaths_cond$Rate[gundeaths_cond$year == as.character(i + 1998)])
+}
+
+v_dsum <- as.vector(0)
+for(i in 1:19){
+  v_dsum[i] <- sum(gundeaths_cond$Deaths[gundeaths_cond$year == as.character(i + 1998)])/3100
+}
+
+
+df_dry <- data.frame(x = 1999:2017, y = v_meandr, z = v_dsum ) 
+
+plotA <- df_dry %>%
+  ggplot(aes(x,y)) +
+  geom_point(size = v_dsum,aes(color = "brown"))+
+  geom_smooth(method = lm, aes(color = "brown"))+
+  geom_line(color = "red")+
+  theme_bw()+
+  theme(legend.position = "none") +
+  labs(x = "Years",
+       y = "Mean Death Rate",
+       title = "Death Rate over time") 
+
+
+v_meanindex <- as.vector(0)
+for(i in 1:19){
+  v_meanindex[i] <- mean(unlist(law_provision_norm$index)[law_provision_norm$year == (i+1998) ], na.rm = T)
+}
+
+df_wet <- data.frame(x = 1999:2017, y = v_meanindex ) 
+plotB <-  df_wet %>%
+  ggplot(aes(x,y))+
+           geom_point(size = 5,aes(color = "green"))+
+                        geom_smooth(method = lm, aes(color = "green"))+
+                        geom_line(aes(color = "grey"))+
+                        theme_bw()+
+                        theme(legend.position = "none")+
+                        labs(x = "Years",
+                             y = "Mean Gun Regulation Index",
+                             title = "Mean Gun Regulation index over time")
+
+ggarrange(plotA, plotB, nrow = 1, ncol = 2)
+
+cor(x = unlist(merged$index), y = merged$Rate,  method = "pearson", use = "complete.obs") #total corr
+cor(x = unlist(merged$index), y = merged$year, method = "pearson", use = "complete.obs")  #years and Index corr
+
+merged %>%
+  ggplot(aes(unlist(index),Rate, color = year ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  theme_bw()+
+  labs(x = "Gun Regulation Index",
+       y = "Gun Death Rate",
+       title = "Gun death vs Index",
+       subtitle = "All states" )
+
+verylow_p <- merged %>%
+  filter(Score == "Very Low") %>%
+  ggplot(aes(unlist(index),Rate, color = year ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  theme_bw()+
+  labs(x = "Gun Regulation Index",
+       y = "Gun Death Rate",
+       subtitle = "Very Low Score states" )+
+  theme(legend.position = "none")
+
+low_p <- merged %>%
+  filter(Score == "Low") %>%
+  ggplot(aes(unlist(index),Rate, color = year ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  theme_bw()+
+  labs(x = "Gun Regulation Index",
+       y = "Gun Death Rate",
+       subtitle = "Low Score states" )+
+  theme(legend.position = "none")
+
+medium_p <- merged %>%
+  filter(Score == "Medium") %>%
+  ggplot(aes(unlist(index),Rate, color = year ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  theme_bw()+
+  labs(x = "Gun Regulation Index",
+       y = "Gun Death Rate",
+       subtitle = "Medium Score states" )+
+  theme(legend.position = "none")
+
+high_p <- merged %>%
+  filter(Score == "High") %>%
+  ggplot(aes(unlist(index),Rate, color = year ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  theme_bw()+
+  labs(x = "Gun Regulation Index",
+       y = "Gun Death Rate",
+       subtitle = "High Score states" )+
+  theme(legend.position = "none")
+
+ggarrange(verylow_p, low_p, medium_p, high_p, nrow = 2, ncol = 2)
+
+verylow_df <- merged[merged$Score == "Very Low",]
+  cor(unlist(verylow_df$index),verylow_df$Rate, method = "pearson", use = "complete.obs") #very low states correlation
+  
+low_df <- merged[merged$Score == "Low",]
+  cor(unlist(low_df$index),low_df$Rate, method = "pearson", use = "complete.obs") #low states correlation
+
+medium_df <- merged[merged$Score == "Medium",]
+  cor(unlist(medium_df$index),medium_df$Rate, method = "pearson", use = "complete.obs")#medium states correlation
+  
+high_df <- merged[merged$Score == "High",]
+  cor(unlist(high_df$index),high_df$Rate, method = "pearson", use = "complete.obs")#high states correlation
+  
+gdgr_lm <- lm(Rate ~unlist(index), data = merged )
+summary(gdgr_lm)
+  
